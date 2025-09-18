@@ -8,9 +8,15 @@ version = "0.1.0"
 name = "helloworld"
 path = "./src/bin/helloworld.rs"
 
+[[bin]]
+name = "accelerometer"
+path = "./src/bin/accelerometer.rs"
+
 [dependencies]
 esp-bootloader-esp-idf = { version = "0.2.0", features = ["esp32s3"] }
 esp-hal = { version = "=1.0.0-rc.0", features = ["esp32s3", "log-04"] }
+embedded-hal = "1.0.0"
+accelerometer = "0.12.0"
 log = "0.4.27"
 
 critical-section = "1.2.0"
