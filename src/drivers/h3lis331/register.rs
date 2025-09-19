@@ -1,7 +1,7 @@
 //! see <https://github.com/adafruit/Adafruit_LIS331/blob/master/Adafruit_LIS331.h> for reference
 
 /// Possible I2C slave addresses.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, defmt::Format, Eq, PartialEq)]
 #[repr(u8)]
 pub enum SlaveAddr {
     /// Default slave address (`0x18`)
@@ -20,7 +20,7 @@ impl SlaveAddr {
 
 pub const CHIP_ID: u8 = 0x32; // The default response to WHO_AM_I for the H3LIS331 and LIS331HH
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, defmt::Format)]
 #[repr(u8)]
 pub enum Register {
     WhoAmI = 0x0F,        // Device identification register. 0b00110011
@@ -71,18 +71,12 @@ impl Register {
 }
 
 /// Measurement range options
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, defmt::Format, Eq, PartialEq)]
 #[repr(u8)]
 pub enum H3lis331Range {
     G100 = 0b00, // +-100g
     G200 = 0b01, // +-200g
     G400 = 0b10, // +-400g
-}
-
-impl Default for H3lis331Range {
-    fn default() -> Self {
-        H3lis331Range::G100
-    }
 }
 
 impl H3lis331Range {
@@ -112,7 +106,7 @@ impl TryFrom<u8> for H3lis331Range {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Copy, Clone, defmt::Format, Eq, PartialEq, Default)]
 pub struct Threshold(pub(crate) u8);
 
 impl Threshold {
@@ -150,7 +144,7 @@ fn crude_ceil(value: f32) -> u64 {
 }
 
 /// Data rate options, used with CTRL_REG1 to set bandwidth
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, defmt::Format)]
 #[repr(u8)]
 pub enum DataRate {
     PowerDown = 0,
@@ -206,7 +200,7 @@ impl TryFrom<u8> for DataRate {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Copy, Clone, defmt::Format, Eq, PartialEq, Default)]
 pub struct Duration(pub(crate) u8);
 
 impl Duration {
@@ -248,7 +242,7 @@ impl Duration {
 ///  * `xyzor` -> (`XOR`, `YOR`, `ZOR`)
 ///  * `zyxda` -> `ZYXDA`
 ///  * `xyzda` -> (`XDA`, `YDA`, `ZDA`)
-#[derive(Debug)]
+#[derive(defmt::Format)]
 pub struct DataStatus {
     /// ZYXOR bit
     pub zyxor: bool,

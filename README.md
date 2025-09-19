@@ -5,7 +5,7 @@ This repo holds various programs I've written for my battlebot(s?), this include
 ## Things to install to get everything working
 
 ```sh
-cargo-binstall esp-generate espflash espup
+cargo-binstall esp-generate espup
 espup install -f ./export-esp.sh
 ```
 
@@ -17,6 +17,12 @@ Note that you need to source the created `export-esp.sh` file in your shell ever
 . ./export-esp.sh
 ```
 
+### If using `espflash`
+
+```sh
+cargo binstall espflash
+```
+
 You also need to add yourself to the `dialout` group to be able to access the serial port without sudo:
 
 ```sh
@@ -24,3 +30,24 @@ sudo usermod -a -G dialout $USER
 ```
 
 > Note: if on Arch linux, you may need to add yourself to the `uucp` group instead.
+
+### If using `probe-rs`
+
+```sh
+cargo binstall probe-rs-tools
+```
+
+You need to add a udev rule to be able to access the probe without sudo.
+
+Download the rules file from https://probe.rs/files/69-probe-rs.rules and place it in `/etc/udev/rules.d/`, then reload the udev rules with:
+
+```sh
+sudo udevadm control --reload
+sudo udevadm trigger
+```
+
+you may also need to add yourself to the `plugdev` group:
+
+```sh
+sudo usermod -a -G plugdev $USER
+```

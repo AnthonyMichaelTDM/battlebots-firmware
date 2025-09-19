@@ -33,10 +33,12 @@ use accelerometer::error::Error as AccelerometerError;
 use accelerometer::vector::{F32x3, I16x3};
 use accelerometer::{Accelerometer, RawAccelerometer};
 
-mod interrupt;
-mod register;
+pub mod interrupt;
+pub mod register;
 
-pub use register::{DataRate, DataStatus, Duration, H3lis331Range, Register, SlaveAddr, Threshold};
+pub use register::{
+    DataRate, DataStatus, Duration, H3lis331Range, Register, SlaveAddr, Threshold, CHIP_ID,
+};
 use register::{BDU, X_EN, Y_EN, Z_EN};
 
 use crate::drivers::h3lis331::interrupt::{
@@ -132,7 +134,7 @@ impl H3lis331<()> {
 }
 
 /// Sensor configuration options
-#[derive(Debug, Clone, Copy)]
+#[derive(defmt::Format, Clone, Copy)]
 pub struct Configuration {
     /// The output data rate, default [`DataRate::Hz400`].
     pub datarate: register::DataRate,
@@ -491,7 +493,7 @@ where
 
     /// Get normalized +- g reading from the accelerometer. You should be reading
     /// based on data ready interrupt or if reading in a tight loop you should
-    /// waiting for `is_data_ready`.
+    /// waiting for `all_data_available`.
     ///
     /// the official driver: https://github.com/adafruit/Adafruit_LIS331/blob/master/Adafruit_H3LIS331.cpp#L119C1-L138C10
     /// was used as a reference.
@@ -511,9 +513,9 @@ where
         //
         // this could give us a more precise value
         let sensitivity = match range {
-            H3lis331Range::G100 => 0.049, // 49 mg/digit ~= 2 * 100 * (1.0 >> 12)
-            H3lis331Range::G200 => 0.098, // 98 mg/digit ~= 2 * 200 * (1.0 >> 12)
-            H3lis331Range::G400 => 0.195, // 195 mg/digit ~= 2 * 400 * (1.0 >> 12)
+            H3lis331Range::G100 => 0.049, // ~= 49 mg/digit ~= 2 * 100 * (1.0 / 4096)
+            H3lis331Range::G200 => 0.098, // ~= 98 mg/digit ~= 2 * 200 * (1.0 / 4096)
+            H3lis331Range::G400 => 0.195, // ~= 195 mg/digit ~= 2 * 400 * (1.0 / 4096)
         };
 
         // The H3LIS331 gives us 12-bit left-justified values, since it is two's complement
@@ -523,7 +525,7 @@ where
         let y = (raw.y >> 4) as f32 * sensitivity;
         let z = (raw.z >> 4) as f32 * sensitivity;
 
-        return Ok(F32x3::new(x, y, z));
+        Ok(F32x3::new(x, y, z))
     }
 
     fn sample_rate(&mut self) -> Result<f32, AccelerometerError<Self::Error>> {
@@ -560,7 +562,6 @@ where
 }
 
 /// H3lis331Interface implementation for I2C
-
 impl<I2C, E> H3lis331Interface for H3lis331I2c<I2C>
 where
     I2C: hal::i2c::I2c<Error = E>,

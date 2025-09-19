@@ -296,16 +296,11 @@ impl InterruptSource {
 /// Latch (keep active) the interrupt until the [`get_irq_src`] is read.
 ///
 /// [`get_irq_src`]: crate::Lis3dh::get_irq_src
-#[derive(Debug, Copy, Clone)]
+#[derive(Default, Debug, Copy, Clone)]
 pub enum LatchInterruptRequest {
     Enable,
+    #[default]
     Disable,
-}
-
-impl Default for LatchInterruptRequest {
-    fn default() -> Self {
-        LatchInterruptRequest::Disable
-    }
 }
 
 impl From<bool> for LatchInterruptRequest {

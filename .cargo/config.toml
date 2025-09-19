@@ -1,12 +1,9 @@
-[alias]
-flash = "espflash flash --chip esp32s3"
-monitor = "espflash monitor --chip esp32s3"
-
 [target.xtensa-esp32s3-none-elf]
-runner = "espflash flash --monitor --chip esp32s3"
+runner = "probe-rs run --chip=esp32s3 --preverify --always-print-stacktrace --no-location --catch-hardfault"
+
 
 [env]
-ESP_LOG = "info"
+DEFMT_LOG = "info"
 
 [build]
 rustflags = ["-C", "link-arg=-nostartfiles"]

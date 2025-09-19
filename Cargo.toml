@@ -7,22 +7,63 @@ version = "0.1.0"
 [[bin]]
 name = "helloworld"
 path = "./src/bin/helloworld.rs"
+test = false
 
 [[bin]]
 name = "accelerometer"
 path = "./src/bin/accelerometer.rs"
+test = false
+
+[[test]]
+name = "math"
+harness = false
+
+[lib]
+test = false
 
 [dependencies]
+defmt = "1.0.1"
 esp-bootloader-esp-idf = { version = "0.2.0", features = ["esp32s3"] }
-esp-hal = { version = "=1.0.0-rc.0", features = ["esp32s3", "log-04"] }
+esp-hal = { version = "=1.0.0-rc.0", features = [
+    "defmt",
+    "esp32s3",
+    "unstable",
+] }
 embedded-hal = "1.0.0"
 accelerometer = "0.12.0"
-log = "0.4.27"
 
 critical-section = "1.2.0"
-esp-alloc = "0.8.0"
-esp-println = { version = "0.15.0", features = ["esp32s3", "log-04"] }
+embedded-io = { version = "0.6.1", features = ["defmt-03"] }
+esp-alloc = { version = "0.8.0", features = ["defmt"] }
+esp-wifi = { version = "0.15.0", features = [
+    "builtin-scheduler",
+    "defmt",
+    "esp-alloc",
+    "esp32s3",
+    "smoltcp",
+    "wifi",
+] }
+panic-rtt-target = { version = "0.2.0", features = ["defmt"] }
+rtt-target = { version = "0.6.1", features = ["defmt"] }
+smoltcp = { version = "0.12.0", default-features = false, features = [
+    "defmt",
+    "medium-ethernet",
+    "multicast",
+    "proto-dhcpv4",
+    "proto-dns",
+    "proto-ipv4",
+    "socket-dns",
+    "socket-icmp",
+    "socket-raw",
+    "socket-tcp",
+    "socket-udp",
+] }
 
+[dev-dependencies]
+embedded-test = { version = "0.6.0", features = [
+    "defmt",
+    "xtensa-semihosting",
+] }
 
 [profile.dev]
 # Rust debug is too slow.
