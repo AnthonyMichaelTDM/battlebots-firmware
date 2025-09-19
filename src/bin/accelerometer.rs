@@ -7,7 +7,13 @@
     holding buffers for the duration of a data transfer."
 )]
 
-use battlebots_firmware::drivers::h3lis331::{accelerometer::Accelerometer, H3lis331, SlaveAddr};
+use accelerometer::vector::VectorExt;
+use battlebots_firmware::drivers::h3lis331::{
+    accelerometer::Accelerometer, Configuration, DataRate, H3lis331, H3lis331Interface,
+    H3lis331Range, Register, SlaveAddr, CHIP_ID,
+};
+
+use defmt::info;
 use esp_hal::{
     clock::CpuClock,
     i2c::master::{Config, I2c},
@@ -15,19 +21,78 @@ use esp_hal::{
     time::{Duration, Instant},
 };
 
-use log::info;
+use panic_rtt_target as _;
 
-#[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! {
-    info!("Panic occurred!");
-    loop {}
-}
+// #[panic_handler]
+// fn panic(_: &core::panic::PanicInfo) -> ! {
+//     info!("Panic occurred!");
+//     loop {}
+// }
+
+extern crate alloc;
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
+fn print_register_dump<I>(accelerometer: &mut H3lis331<I>)
+where
+    I: H3lis331Interface,
+    I::PinError: core::fmt::Debug,
+    I::BusError: core::fmt::Debug,
+{
+    info!("Register dump:");
+    const REGISTERS: &[Register] = &[
+        Register::WhoAmI,
+        Register::Ctrl1,
+        Register::Ctrl2,
+        Register::Ctrl3,
+        Register::Ctrl4,
+        Register::Ctrl5,
+        Register::HpFilterReset,
+        Register::Reference,
+        Register::Status,
+        Register::OutXL,
+        Register::OutXH,
+        Register::OutYL,
+        Register::OutYH,
+        Register::OutZL,
+        Register::OutZH,
+        Register::Int1Cfg,
+        Register::Int1Src,
+        Register::Int1Ths,
+        Register::Int1Dur,
+        Register::Int2Cfg,
+        Register::Int2Src,
+        Register::Int2Ths,
+        Register::Int2Dur,
+    ];
+    for &reg in REGISTERS.iter() {
+        let val = accelerometer.read_register(reg).unwrap();
+        info!("Reg {:?}: {:#04X}", reg, val);
+    }
+}
+
+fn print_accelerometer_info<I>(accelerometer: &mut H3lis331<I>)
+where
+    I: H3lis331Interface,
+    I::PinError: core::fmt::Debug,
+    I::BusError: core::fmt::Debug,
+{
+    let who_am_i = accelerometer.who_am_i().unwrap();
+    info!("Who am I: {:#b}", who_am_i);
+    let stat = accelerometer.get_status().unwrap();
+    info!("Status: {:?}", stat);
+    let datarate = accelerometer.get_datarate().unwrap();
+    info!("Data rate: {:?}", datarate);
+    let range = accelerometer.get_range().unwrap();
+    info!("Range: {:?}", range);
+    info!("-----------------------------------");
+    print_register_dump(accelerometer);
+    info!("-----------------------------------");
+}
+
 #[main]
 fn main() -> ! {
-    esp_println::logger::init_logger_from_env();
+    rtt_target::rtt_init_defmt!();
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
@@ -41,19 +106,54 @@ fn main() -> ! {
 
     let mut accelerometer = H3lis331::new_i2c(i2c, SlaveAddr::Default);
 
-    let who_am_i = accelerometer.who_am_i().unwrap();
-    info!("Who am I: {:#b}", who_am_i);
-    // assert_eq!(who_am_i, 0b00110011, "Unexpected WHO_AM_I value");
+    print_accelerometer_info(&mut accelerometer);
 
-    accelerometer
-        .set_datarate(battlebots_firmware::drivers::h3lis331::DataRate::Hz100)
-        .unwrap();
+    let who_am_i = accelerometer.who_am_i().unwrap();
+    assert_eq!(who_am_i, CHIP_ID, "Unexpected WHO_AM_I value");
+
+    // set configuration
+    let config = Configuration {
+        datarate: DataRate::Hz50,
+        ..Configuration::default()
+    };
+    accelerometer.configure(&config).unwrap();
+    accelerometer.set_range(H3lis331Range::G100).unwrap();
+
+    print_accelerometer_info(&mut accelerometer);
+    info!("Starting main loop...");
+    const TICK: Duration = Duration::from_millis(100);
+
+    let mut tick_count = 0u8;
 
     loop {
-        let data = accelerometer.accel_norm().unwrap();
-        info!("Accel data: {:?}", data);
+        tick_count = tick_count.wrapping_add(1);
+
+        match accelerometer.all_data_available() {
+            Ok(true) => {
+                let data = accelerometer.accel_norm().unwrap();
+
+                info!(
+                    "Accel data: x={=f32}, y={=f32}, z={=f32} (units of g). Magnitude={=f32}",
+                    data.x,
+                    data.y,
+                    data.z,
+                    data.magnitude(),
+                );
+            }
+            Ok(false) => {
+                // No new data available
+            }
+            Err(e) => {
+                info!(
+                    "Error checking data availability: {=str}",
+                    alloc::fmt::format(format_args!("{:?}", e))
+                );
+            }
+        }
+
+        // Delay for a bit
         let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(100) {
+        while delay_start.elapsed() < TICK {
             // Wait
         }
     }
