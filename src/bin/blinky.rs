@@ -34,11 +34,11 @@ fn main() -> ! {
     let freq_mhz = 80;
     let mut led = WS2812B::new(peripherals.RMT, freq_mhz, peripherals.GPIO48).unwrap();
 
-    const BRIGHTNESS: u8 = 128;
+    const BRIGHTNESS: u8 = 64;
     let sequence: [((u8, u8, u8), Duration); 3] = [
         ((BRIGHTNESS, 0, 0), Duration::from_millis(1000)), // Red
-        ((0, BRIGHTNESS / 2, 0), Duration::from_millis(1000)), // Green
-        ((0, 0, BRIGHTNESS / 2), Duration::from_millis(1000)), // Blue
+        ((0, BRIGHTNESS, 0), Duration::from_millis(1000)), // Green
+        ((0, 0, BRIGHTNESS), Duration::from_millis(1000)), // Blue
     ];
     let mut seq_index = 0;
 
