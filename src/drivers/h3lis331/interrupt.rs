@@ -77,18 +77,13 @@ impl Interrupt for Interrupt2 {
 /// | 0 | 1 | 6-direction movement recognition  |
 /// | 1 | 0 | AND combination of interrupt events  |
 /// | 1 | 1 | 6-direction position recognition  |
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub enum InterruptMode {
+    #[default]
     OrCombination = 0b00 << 6,
     Movement = 0b01 << 6,
     AndCombination = 0b10 << 6,
     Position = 0b11 << 6,
-}
-
-impl Default for InterruptMode {
-    fn default() -> Self {
-        InterruptMode::OrCombination
-    }
 }
 
 impl InterruptMode {
@@ -315,16 +310,11 @@ impl From<bool> for LatchInterruptRequest {
 
 /// 4D detection is a subset of the 6D detection where detection on the Z axis is disabled.
 /// This setting only has effect when the interrupt mode is either `Movement` or `Position`.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub enum Detect4D {
     Enable,
+    #[default]
     Disable,
-}
-
-impl Default for Detect4D {
-    fn default() -> Self {
-        Detect4D::Disable
-    }
 }
 
 impl From<bool> for Detect4D {

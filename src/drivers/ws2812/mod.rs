@@ -122,7 +122,7 @@ impl WS2812B {
     }
 
     fn dispatch(mut self, data: &[u32]) -> Result<Self, Error> {
-        let transaction = self.ch.transmit(&data)?;
+        let transaction = self.ch.transmit(data)?;
         self.ch = transaction.wait().map_err(|tup_e| tup_e.0)?;
 
         Ok(self)

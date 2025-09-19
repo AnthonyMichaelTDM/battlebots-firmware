@@ -589,7 +589,7 @@ where
     ) -> Result<u8, Error<Self::BusError, Self::PinError>> {
         let mut buf = [0u8; 1];
         self.i2c
-            .write_read(self.address as u8, &[register as u8], &mut buf)
+            .write_read(self.address.addr(), &[register as u8], &mut buf)
             .map_err(Error::Bus)?;
         Ok(buf[0])
     }
@@ -597,9 +597,9 @@ where
     fn read_accel_bytes(&mut self) -> Result<[u8; 6], Error<Self::BusError, Self::PinError>> {
         let mut buf = [0u8; 6];
         // set auto-increment bit in register address
-        let register = Register::OutXL as u8 | 0x80;
+        let register = Register::OutXL.addr() | 0x80;
         self.i2c
-            .write_read(self.address as u8, &[register], &mut buf)
+            .write_read(self.address.addr(), &[register], &mut buf)
             .map_err(Error::Bus)?;
         Ok(buf)
     }
@@ -641,11 +641,11 @@ where
 
         self.select()?;
         // clear the read bit (bit 7) and auto-increment bit (bit 6)
-        let mut addr = [register as u8 & 0x3F];
-        let write_buf = [value];
-        self.spi
-            .transfer(&mut addr, &mut write_buf.clone())
-            .map_err(Error::Bus)?;
+        // NOTE: I do an OR with 0x40 (which sets the auto-increment bit) since that's what
+        // the reference implementations do, but it seems like ANDing with 0x3F (to clear both bits)
+        // should also work.
+        let addr = register.addr() | 0x40;
+        self.spi.write(&[addr, value]).map_err(Error::Bus)?;
         self.deselect()?;
 
         Ok(())
@@ -657,10 +657,10 @@ where
     ) -> Result<u8, Error<Self::BusError, Self::PinError>> {
         self.select()?;
         // set the read bit (bit 7), clear auto-increment bit (bit 6)
-        let mut addr = [register as u8 | 0x80];
+        let addr = [register.addr() | 0x80];
         let mut write_buf = [0];
         self.spi
-            .transfer(&mut addr, &mut write_buf)
+            .transfer(&mut write_buf, &addr)
             .map_err(Error::Bus)?;
         self.deselect()?;
 
@@ -670,11 +670,9 @@ where
     fn read_accel_bytes(&mut self) -> Result<[u8; 6], Error<Self::BusError, Self::PinError>> {
         let mut buf = [0u8; 6];
         self.select()?;
-        // set auto-increment bit in register address
-        let mut register = [Register::OutXL as u8 | 0xC0];
-        self.spi
-            .transfer(&mut register, &mut buf)
-            .map_err(Error::Bus)?;
+        // set read and auto-increment bits in register address
+        let register = [Register::OutXL.addr() | 0xC0];
+        self.spi.transfer(&mut buf, &register).map_err(Error::Bus)?;
         self.deselect()?;
 
         Ok(buf)
