@@ -6,13 +6,16 @@ version = "0.1.0"
 
 [[bin]]
 name = "helloworld"
-path = "./src/bin/helloworld.rs"
+test = false
+
+[[bin]]
+name = "blinky"
 test = false
 
 [[bin]]
 name = "accelerometer"
-path = "./src/bin/accelerometer.rs"
 test = false
+
 
 [[test]]
 name = "math"
