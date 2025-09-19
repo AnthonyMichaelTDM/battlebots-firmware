@@ -13,6 +13,14 @@ name = "blinky"
 test = false
 
 [[bin]]
+name = "rainbow"
+test = false
+
+[[bin]]
+name = "led_off"
+test = false
+
+[[bin]]
 name = "accelerometer"
 test = false
 
