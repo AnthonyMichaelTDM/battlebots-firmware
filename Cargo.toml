@@ -44,6 +44,13 @@ embedded-hal = "1.0.0"
 accelerometer = "0.12.0"
 
 critical-section = "1.2.0"
+esp-backtrace = { version = "0.17.0", features = [
+    "defmt",
+    "esp32s3",
+    "exception-handler",
+    "panic-handler",
+] }
+esp-println = { version = "0.15.0", features = ["defmt-espflash", "esp32s3"] }
 embedded-io = { version = "0.6.1", features = ["defmt-03"] }
 esp-alloc = { version = "0.8.0", features = ["defmt"] }
 esp-wifi = { version = "0.15.0", features = [
@@ -54,8 +61,6 @@ esp-wifi = { version = "0.15.0", features = [
     "smoltcp",
     "wifi",
 ] }
-panic-rtt-target = { version = "0.2.0", features = ["defmt"] }
-rtt-target = { version = "0.6.1", features = ["defmt"] }
 smoltcp = { version = "0.12.0", default-features = false, features = [
     "defmt",
     "medium-ethernet",
@@ -71,6 +76,8 @@ smoltcp = { version = "0.12.0", default-features = false, features = [
 ] }
 
 [dev-dependencies]
+panic-rtt-target = { version = "0.2.0", features = ["defmt"] }
+rtt-target = { version = "0.6.1", features = ["defmt"] }
 embedded-test = { version = "0.6.0", features = [
     "defmt",
     "xtensa-semihosting",

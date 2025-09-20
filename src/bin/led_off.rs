@@ -9,7 +9,7 @@
 use battlebots_firmware::drivers::ws2812::WS2812B;
 use esp_hal::{clock::CpuClock, main};
 // use esp_hal::timer::timg::TimerGroup;
-use panic_rtt_target as _;
+use {esp_backtrace as _, esp_println as _};
 
 extern crate alloc;
 
@@ -19,8 +19,6 @@ esp_bootloader_esp_idf::esp_app_desc!();
 
 #[main]
 fn main() -> ! {
-    rtt_target::rtt_init_defmt!();
-
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::_80MHz);
     let peripherals = esp_hal::init(config);
 
@@ -33,5 +31,5 @@ fn main() -> ! {
     led.set_colors(0, 0, 0);
     _ = led.play(1).unwrap();
 
-    panic!("done");
+    loop {}
 }

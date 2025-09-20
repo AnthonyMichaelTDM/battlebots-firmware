@@ -17,7 +17,7 @@ Note that you need to source the created `export-esp.sh` file in your shell ever
 . ./export-esp.sh
 ```
 
-### If using `espflash`
+### If using `espflash` (I use it for most things)
 
 ```sh
 cargo binstall espflash
@@ -31,7 +31,7 @@ sudo usermod -a -G dialout $USER
 
 > Note: if on Arch linux, you may need to add yourself to the `uucp` group instead.
 
-### If using `probe-rs`
+### If using `probe-rs` (I use it for testing)
 
 ```sh
 cargo binstall probe-rs-tools
@@ -50,4 +50,12 @@ you may also need to add yourself to the `plugdev` group:
 
 ```sh
 sudo usermod -a -G plugdev $USER
+```
+
+#### To run tests with `probe-rs`
+
+you need to switch the runner in `.cargo/config.toml` to use `probe-rs` instead of `espflash`, then you can run tests with:
+
+```sh
+cargo test
 ```

@@ -20,14 +20,7 @@ use esp_hal::{
     main,
     time::{Duration, Instant},
 };
-
-use panic_rtt_target as _;
-
-// #[panic_handler]
-// fn panic(_: &core::panic::PanicInfo) -> ! {
-//     info!("Panic occurred!");
-//     loop {}
-// }
+use {esp_backtrace as _, esp_println as _};
 
 extern crate alloc;
 
@@ -92,8 +85,6 @@ where
 
 #[main]
 fn main() -> ! {
-    rtt_target::rtt_init_defmt!();
-
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 

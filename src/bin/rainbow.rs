@@ -13,7 +13,7 @@ use esp_hal::{
     time::{Duration, Instant},
 };
 // use esp_hal::timer::timg::TimerGroup;
-use panic_rtt_target as _;
+use {esp_backtrace as _, esp_println as _};
 
 extern crate alloc;
 
@@ -22,7 +22,7 @@ extern crate alloc;
 esp_bootloader_esp_idf::esp_app_desc!();
 
 const SATURATION: u8 = 100; // Full saturation for vibrant colors
-const BRIGHTNESS: u8 = 10; // Brightness (0-100)
+const BRIGHTNESS: u8 = 5; // Brightness (0-100)
 const HUE_STEP: u16 = 1; // How much to increment hue each step
 const DELAY_MS: u64 = 10; // Delay between color changes in milliseconds
 
@@ -59,8 +59,6 @@ fn hsv_to_rgb(h: u16, s: u8, v: u8) -> (u8, u8, u8) {
 
 #[main]
 fn main() -> ! {
-    rtt_target::rtt_init_defmt!();
-
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
