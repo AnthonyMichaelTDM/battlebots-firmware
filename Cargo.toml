@@ -21,6 +21,10 @@ name = "led_off"
 test = false
 
 [[bin]]
+name = "chip_info"
+test = false
+
+[[bin]]
 name = "accelerometer"
 test = false
 

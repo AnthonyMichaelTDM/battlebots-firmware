@@ -13,6 +13,14 @@
 //! This driver is based on the `embedded-hal` traits and should work with any
 //! microcontroller that has an `embedded-hal` implementation.
 //!
+//! # TODO list
+//!
+//! - test SPI driver on real hardware
+//! - add examples
+//! - HPF configuration
+//! - LPF configuration
+//! - ...
+//!  
 //! # Example
 //!
 //! ## Using SPI (esp32)
