@@ -31,6 +31,8 @@
 //!
 //! TODO
 
+#![no_std]
+
 use core::convert::{TryFrom, TryInto};
 use core::fmt::Debug;
 
@@ -49,7 +51,7 @@ pub use register::{
 };
 use register::{BDU, X_EN, Y_EN, Z_EN};
 
-use crate::drivers::h3lis331::interrupt::{
+use interrupt::{
     Detect4D, Interrupt, InterruptConfig, InterruptMode, InterruptSource, IrqPin,
     LatchInterruptRequest,
 };

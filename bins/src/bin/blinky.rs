@@ -6,7 +6,7 @@
     holding buffers for the duration of a data transfer."
 )]
 
-use battlebots_firmware::drivers::ws2812::WS2812B;
+use battlebots_firmware::ws2812::WS2812B;
 use esp_hal::{
     clock::CpuClock,
     main,

@@ -1,0 +1,10 @@
+[package]
+edition.workspace = true
+name = "h3lis311"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+defmt = "1.0.1"
+embedded-hal = "1.0.0"
+accelerometer = "0.12.0"

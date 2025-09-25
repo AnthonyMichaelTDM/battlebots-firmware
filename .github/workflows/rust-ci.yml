@@ -30,6 +30,7 @@ jobs:
             args: --all -- --check
           - command: clippy
             args: --all-features --workspace -- -D warnings
+        workspace: [bins, drivers]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,8 +39,9 @@ jobs:
         with:
           default: true
           buildtargets: esp32s3
-          ldproxy: false
+          ldproxy: true
       - name: Enable caching
         uses: Swatinem/rust-cache@v2
       - name: Run command
         run: cargo ${{ matrix.action.command }} ${{ matrix.action.args }}
+        working-directory: ${{ matrix.workspace }}

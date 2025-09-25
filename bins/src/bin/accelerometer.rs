@@ -8,7 +8,7 @@
 )]
 
 use accelerometer::vector::VectorExt;
-use battlebots_firmware::drivers::h3lis331::{
+use h3lis311::{
     accelerometer::Accelerometer, Configuration, DataRate, H3lis331, H3lis331Interface,
     H3lis331Range, Register, SlaveAddr, CHIP_ID,
 };

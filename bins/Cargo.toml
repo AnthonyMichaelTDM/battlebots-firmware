@@ -28,9 +28,12 @@ test = false
 name = "accelerometer"
 test = false
 
+[[bin]]
+name = "brushless_motor"
+test = false
 
 [[test]]
-name = "math"
+name = "h3lis311_math"
 harness = false
 
 [lib]
@@ -46,6 +49,7 @@ esp-hal = { version = "=1.0.0-rc.0", features = [
 ] }
 embedded-hal = "1.0.0"
 accelerometer = "0.12.0"
+h3lis311 = { path = "../drivers/h3lis311" }
 
 critical-section = "1.2.0"
 esp-backtrace = { version = "0.17.0", features = [
