@@ -36,6 +36,7 @@
     reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
     holding buffers for the duration of a data transfer."
 )]
+#![allow(clippy::empty_loop)]
 
 use battlebots_firmware::ws2812::WS2812B;
 use defmt::{info, warn};
