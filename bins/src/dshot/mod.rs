@@ -98,6 +98,10 @@ impl DShotSpeed {
         }
     }
 
+    pub fn bit_frame_length_ns(&self) -> u32 {
+        self.bit_period_ns() * 16
+    }
+
     /// High and Low Times in µs
     pub fn bit_times(&self) -> BitTimes {
         match &self {
