@@ -24,14 +24,16 @@ use defmt::{info, warn};
 use embedded_hal::delay::DelayNs;
 use esp_hal::{
     clock::CpuClock,
-    gpio::{Output, OutputConfig},
+    gpio::{Level, Output, OutputConfig, Pull},
     main,
-    rmt::{TxChannelConfig, TxChannelCreator as _},
+    rmt::{Rmt, TxChannelConfig, TxChannelCreator as _},
     time::{Duration, Instant, Rate},
 };
 use {esp_backtrace as _, esp_println as _};
 
 extern crate alloc;
+
+const PROTOCOL: DShotSpeed = DShotSpeed::DShot600;
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -88,6 +90,33 @@ fn ramp_up_down<const CHANNEL: u8>(
     dshot
 }
 
+fn hold_throttle<const CHANNEL: u8>(
+    throttle: u16,
+    duration: Duration,
+    mut dshot: DShot<BlockingChannel<CHANNEL>>,
+    delay: &mut impl DelayNs,
+) -> DShot<BlockingChannel<CHANNEL>> {
+    info!("Holding throttle at {} for {:?}", throttle, duration);
+    let start = Instant::now();
+    loop {
+        let elapsed = start.elapsed();
+        if elapsed > duration {
+            break;
+        }
+        dshot = match dshot.write_throttle_blocking(throttle.clamp(48, 2047), false) {
+            Ok(dshot) => dshot,
+            Err(e) => {
+                warn!("Failed to set throttle: {:?}", e);
+                loop {}
+            }
+        };
+        // wait between updates
+        delay.delay_ms(20);
+    }
+
+    dshot
+}
+
 #[main]
 fn main() -> ! {
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
@@ -114,8 +143,12 @@ fn main() -> ! {
     let gpio = peripherals.GPIO14;
     let rmt_rate = Rate::from_mhz(80);
     let rmt_clk_divider = 1; // 1 tick = 12.5 ns
-    let rmt = esp_hal::rmt::Rmt::new(peripherals.RMT, rmt_rate).unwrap();
-    let output = Output::new(gpio, esp_hal::gpio::Level::Low, OutputConfig::default());
+    let rmt = Rmt::new(peripherals.RMT, rmt_rate).unwrap();
+    let output = Output::new(
+        gpio,
+        Level::Low,
+        OutputConfig::default().with_pull(Pull::Down),
+    );
     let channel = rmt
         .channel1
         .configure_tx(
@@ -125,7 +158,10 @@ fn main() -> ! {
         .unwrap();
 
     // create the DShot instance
-    let mut dshot = DShot::new(channel, DShotSpeed::DShot600, rmt_rate, rmt_clk_divider);
+    let mut dshot = DShot::new(channel, PROTOCOL, rmt_rate, rmt_clk_divider);
+
+    // not sure why, but this wait is needed
+    delay.delay_millis(1500);
 
     // arm the ESC
     info!("Arming ESC...");
@@ -137,46 +173,15 @@ fn main() -> ! {
         }
     };
 
-    delay.delay_millis(100);
-
-    // set initial throttle to 0
-    info!("Setting initial throttle to 0%");
-    dshot = match dshot.write_throttle_blocking(48, false) {
-        Ok(dshot) => dshot,
-        Err(e) => {
-            warn!("Failed to set initial throttle: {:?}", e);
-            loop {}
-        }
-    };
-
-    delay.delay_millis(260);
-
-    // arm the ESC
-    info!("Arming ESC...");
-    dshot = match dshot.arm_blocking(&mut delay) {
-        Ok(dshot) => dshot,
-        Err(e) => {
-            warn!("Failed to arm ESC: {:?}", e);
-            loop {}
-        }
-    };
-
-    // wait a moment
-    delay.delay_millis(260);
+    delay.delay_millis(20);
 
     // ramp up over 5 seconds and then ramp back back down
-    const TARGET_THROTTLE_PERCENT: f32 = 0.5; // 50% throttle
-    const TARGET_THROTTLE: u16 = 48 + ((2047 - 48) as f32 * TARGET_THROTTLE_PERCENT) as u16; // 40% throttle
-    dshot = ramp_up_down(TARGET_THROTTLE, Duration::from_secs(5), dshot, delay);
+    const TARGET_THROTTLE_PERCENT: f32 = 0.4;
+    const TARGET_THROTTLE: u16 = 48 + ((2047 - 48) as f32 * TARGET_THROTTLE_PERCENT) as u16;
+    dshot = ramp_up_down(TARGET_THROTTLE, Duration::from_secs(4), dshot, delay);
 
-    info!("Stopping motor");
-    dshot = match dshot.write_throttle_blocking(48, false) {
-        Ok(dshot) => dshot,
-        Err(e) => {
-            warn!("Failed to stop motor: {:?}", e);
-            loop {}
-        }
-    };
+    // let's maintain 0% throttle for another 2 seconds to see if we can trigger the "beacon beeps"
+    dshot = hold_throttle(100, Duration::from_secs(2), dshot, delay);
 
     info!("sleeping a bit");
     delay.delay_millis(500);
